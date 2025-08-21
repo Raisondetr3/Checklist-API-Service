@@ -1,13 +1,13 @@
-// internal/api/middleware/logging.go
 package middleware
 
 import (
+	"checklist-api-service/pkg/logger"
 	"log/slog"
 	"net/http"
 	"time"
 
+	// "checklist-api-service/pkg/logger/logger.go"
 	"github.com/google/uuid"
-	"github.com/raisondetr3/checklist/pkg/logger"
 )
 
 type responseWriter struct {
@@ -33,33 +33,32 @@ func (rw *responseWriter) Write(data []byte) (int, error) {
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		
+
 		requestID := uuid.New().String()
-		
+
 		ctx := r.Context()
 		r = r.WithContext(ctx)
-		
+
 		w.Header().Set("X-Request-ID", requestID)
-		
+
 		wrapped := &responseWriter{
 			ResponseWriter: w,
 			statusCode:     0,
 		}
-		
+
 		slog.Info("Request started",
 			slog.String("request_id", requestID),
 			slog.String("method", r.Method),
 			slog.String("path", r.URL.Path),
-			slog.String("query", r.URL.RawQuery),
-			slog.String("user_agent", r.UserAgent()),
 			slog.String("remote_addr", r.RemoteAddr),
 		)
-		
+
 		next.ServeHTTP(wrapped, r)
-		
+
 		duration := time.Since(start)
-		
+
 		logger.LogRequest(
+			r.Context(),
 			r.Method,
 			r.URL.Path,
 			r.UserAgent(),
@@ -78,13 +77,12 @@ func PanicRecoveryMiddleware(next http.Handler) http.Handler {
 					slog.Any("panic", err),
 					slog.String("method", r.Method),
 					slog.String("path", r.URL.Path),
-					slog.String("user_agent", r.UserAgent()),
 				)
-				
+
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			}
 		}()
-		
+
 		next.ServeHTTP(w, r)
 	})
 }
