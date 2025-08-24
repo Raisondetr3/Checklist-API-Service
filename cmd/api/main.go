@@ -1,9 +1,9 @@
 package main
 
 import (
-	"Checklist/internal/config"
-	httpTransport "Checklist/internal/transport/http"
-	"Checklist/pkg/logger"
+	"checklist-api-service/internal/config"
+	httpTransport "checklist-api-service/internal/transport/http"
+	"checklist-api-service/pkg/logger"
 	"context"
 	"log/slog"
 	"os"
@@ -37,10 +37,12 @@ func main() {
 	handlers := httpTransport.NewHTTPHandlers(cfg)
 	server := httpTransport.NewHTTPServer(cfg, handlers)
 
-	if err := server.StartServer(); err != nil {
-		slog.Error("Failed to start server", slog.String("error", err.Error()))
-		os.Exit(1)
-	}
+	go func() {
+		if err := server.StartServer(); err != nil {
+			slog.Error("Failed to start server", slog.String("error", err.Error()))
+			os.Exit(1)
+		}
+	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

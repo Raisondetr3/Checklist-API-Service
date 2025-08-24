@@ -1,0 +1,22 @@
+server:
+  port: "8080"
+  read_timeout: "15s"
+  write_timeout: "15s"
+  idle_timeout: "60s"
+
+logging:
+  level: "info"
+  file_path: "logs"
+  file_name: "api-service.log"
+  format: "json"
+
+external_services:
+  db_service:
+    url: "http://localhost:8081"
+    timeout: "30s"
+  
+  kafka:
+    brokers: 
+      - "localhost:9092"
+    topic: "checklist-events"
+    timeout: "10s"

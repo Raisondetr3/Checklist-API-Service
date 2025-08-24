@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	// "checklist-api-service/pkg/logger/logger.go"
 	"github.com/google/uuid"
 )
 

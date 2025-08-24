@@ -1,8 +1,8 @@
 package http
 
 import (
-	"Checklist/internal/config"
-	"Checklist/internal/middleware"
+	"checklist-api-service/internal/config"
+	"checklist-api-service/internal/middleware"
 	"context"
 	"errors"
 	"log/slog"
