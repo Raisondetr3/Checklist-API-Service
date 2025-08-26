@@ -1,8 +1,8 @@
 package http
 
 import (
-	"checklist-api-service/internal/config"
-	"checklist-api-service/internal/middleware"
+	"github.com/Raisondetr3/checklist-api-service/internal/config"
+	"github.com/Raisondetr3/checklist-api-service/internal/transport/http/middleware"
 	"context"
 	"errors"
 	"log/slog"

@@ -1,10 +1,11 @@
 package middleware
 
 import (
-	"checklist-api-service/pkg/logger"
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/Raisondetr3/checklist-api-service/pkg/logger"
 
 	"github.com/google/uuid"
 )

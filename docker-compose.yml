@@ -1,0 +1,43 @@
+services:
+  checklist-api-service:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: checklist-api-service
+    env_file:
+      - .env
+    environment:
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      SERVER_READ_TIMEOUT: ${SERVER_READ_TIMEOUT:-15s}
+      SERVER_WRITE_TIMEOUT: ${SERVER_WRITE_TIMEOUT:-15s}
+      SERVER_IDLE_TIMEOUT: ${SERVER_IDLE_TIMEOUT:-60s}
+      
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FILE_PATH: ${LOG_FILE_PATH:-logs}
+      LOG_FILE_NAME: ${LOG_FILE_NAME:-api-service.log}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      
+      DB_SERVICE_URL: ${DB_SERVICE_URL:-http://checklist-db-service:8081}
+      DB_SERVICE_TIMEOUT: ${DB_SERVICE_TIMEOUT:-30s}
+      KAFKA_SERVICE_URL: ${KAFKA_SERVICE_URL:-http://checklist-kafka-service:8082}
+      KAFKA_SERVICE_TIMEOUT: ${KAFKA_SERVICE_TIMEOUT:-30s}
+      
+      IN_DOCKER: "true"
+    ports:
+      - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
+    depends_on: []
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - checklist-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  checklist-network:
+    external: true

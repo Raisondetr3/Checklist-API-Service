@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// loggingUnaryInterceptor логирует gRPC запросы
 func loggingUnaryInterceptor(
 	ctx context.Context,
 	method string,
@@ -25,7 +24,6 @@ func loggingUnaryInterceptor(
 
 	duration := time.Since(start)
 
-	// Определяем уровень логирования на основе результата
 	logLevel := slog.LevelInfo
 	if err != nil {
 		s, ok := status.FromError(err)
@@ -60,14 +58,12 @@ func loggingUnaryInterceptor(
 		}
 		slog.LogAttrs(ctx, logLevel, "gRPC Call Failed", attrs...)
 	} else {
-		// Успешные вызовы логируем только на debug уровне для производительности
 		slog.LogAttrs(ctx, slog.LevelDebug, "gRPC Call Success", attrs...)
 	}
 
 	return err
 }
 
-// retryUnaryInterceptor добавляет retry логику для определенных ошибок
 func retryUnaryInterceptor(maxRetries int, retryDelay time.Duration) grpc.UnaryClientInterceptor {
 	return func(
 		ctx context.Context,
@@ -81,7 +77,6 @@ func retryUnaryInterceptor(maxRetries int, retryDelay time.Duration) grpc.UnaryC
 
 		for attempt := 0; attempt <= maxRetries; attempt++ {
 			if attempt > 0 {
-				// Логируем повторную попытку
 				slog.WarnContext(ctx, "Retrying gRPC call",
 					slog.String("method", method),
 					slog.Int("attempt", attempt),
@@ -89,7 +84,6 @@ func retryUnaryInterceptor(maxRetries int, retryDelay time.Duration) grpc.UnaryC
 					slog.String("last_error", lastErr.Error()),
 				)
 
-				// Ждем перед повторной попыткой
 				select {
 				case <-time.After(retryDelay):
 				case <-ctx.Done():
@@ -110,12 +104,10 @@ func retryUnaryInterceptor(maxRetries int, retryDelay time.Duration) grpc.UnaryC
 
 			lastErr = err
 
-			// Проверяем, стоит ли повторять запрос
 			if !shouldRetry(err) {
 				break
 			}
 
-			// Если это последняя попытка, не ждем
 			if attempt == maxRetries {
 				break
 			}
@@ -131,7 +123,6 @@ func retryUnaryInterceptor(maxRetries int, retryDelay time.Duration) grpc.UnaryC
 	}
 }
 
-// shouldRetry определяет, стоит ли повторять запрос на основе ошибки
 func shouldRetry(err error) bool {
 	if err == nil {
 		return false
@@ -142,20 +133,18 @@ func shouldRetry(err error) bool {
 		return false
 	}
 
-	// Повторяем запрос только для определенных типов ошибок
 	switch s.Code() {
-	case codes.Unavailable, // Сервер недоступен
-		codes.DeadlineExceeded,  // Превышен таймаут
-		codes.ResourceExhausted, // Ресурсы исчерпаны
-		codes.Aborted,           // Запрос прерван
-		codes.Internal:          // Внутренняя ошибка сервера
+	case codes.Unavailable,
+		codes.DeadlineExceeded,
+		codes.ResourceExhausted,
+		codes.Aborted,
+		codes.Internal:
 		return true
 	default:
 		return false
 	}
 }
 
-// timeoutUnaryInterceptor добавляет таймауты если они не установлены
 func timeoutUnaryInterceptor(defaultTimeout time.Duration) grpc.UnaryClientInterceptor {
 	return func(
 		ctx context.Context,
@@ -165,7 +154,6 @@ func timeoutUnaryInterceptor(defaultTimeout time.Duration) grpc.UnaryClientInter
 		invoker grpc.UnaryInvoker,
 		opts ...grpc.CallOption,
 	) error {
-		// Проверяем, есть ли уже таймаут в контексте
 		if _, ok := ctx.Deadline(); !ok {
 			var cancel context.CancelFunc
 			ctx, cancel = context.WithTimeout(ctx, defaultTimeout)

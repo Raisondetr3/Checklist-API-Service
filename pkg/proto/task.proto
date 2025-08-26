@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package task;
 
-option go_package = "github.com/Raisondetr3/checklist-api-service/proto";
+option go_package = "github.com/Raisondetr3/checklist-api-service/pb";
 
 import "google/protobuf/timestamp.proto";
 

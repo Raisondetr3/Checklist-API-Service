@@ -1,15 +1,18 @@
 package main
 
 import (
-	"checklist-api-service/internal/config"
-	httpTransport "checklist-api-service/internal/transport/http"
-	"checklist-api-service/pkg/logger"
 	"context"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/Raisondetr3/checklist-api-service/internal/client"
+	"github.com/Raisondetr3/checklist-api-service/internal/config"
+	"github.com/Raisondetr3/checklist-api-service/internal/service"
+	httpTransport "github.com/Raisondetr3/checklist-api-service/internal/transport/http"
+	"github.com/Raisondetr3/checklist-api-service/pkg/logger"
 )
 
 func main() {
@@ -34,10 +37,26 @@ func main() {
 		slog.String("db_service_url", cfg.ExternalServices.DBService.URL),
 	)
 
-	handlers := httpTransport.NewHTTPHandlers(cfg)
+	grpcClient, err := client.NewTaskClient(cfg.ExternalServices.DBService)
+	if err != nil {
+		slog.Error("Failed to create gRPC client", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	defer func() {
+		if err := grpcClient.Close(); err != nil {
+			slog.Error("Failed to close gRPC client", slog.String("error", err.Error()))
+		}
+	}()
+
+	taskService := service.NewTaskService(grpcClient)
+	healthService := service.NewHealthService(cfg)
+
+
+	handlers := httpTransport.NewHTTPHandlers(cfg, taskService, healthService)
 	server := httpTransport.NewHTTPServer(cfg, handlers)
 
 	go func() {
+		slog.Info("Starting HTTP server", slog.String("port", cfg.Server.Port))
 		if err := server.StartServer(); err != nil {
 			slog.Error("Failed to start server", slog.String("error", err.Error()))
 			os.Exit(1)
