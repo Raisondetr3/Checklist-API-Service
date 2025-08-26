@@ -32,7 +32,8 @@ type ExternalServicesConfig struct {
 }
 
 type DBServiceConfig struct {
-	URL              string
+	HTTPUrl          string
+	GRPCAddress      string
 	Timeout          time.Duration
 	MaxRetries       int
 	RetryDelay       time.Duration
@@ -65,7 +66,8 @@ func setDefaults(cfg *Config) {
 	cfg.Logging.FileName = "api-service.log"
 	cfg.Logging.Format = "json"
 
-	cfg.ExternalServices.DBService.URL = "http://localhost:8081"
+	cfg.ExternalServices.DBService.HTTPUrl = "http://localhost:8081"
+	cfg.ExternalServices.DBService.GRPCAddress = "localhost:9090"
 	cfg.ExternalServices.DBService.Timeout = 30 * time.Second
 	cfg.ExternalServices.DBService.MaxRetries = 3
 	cfg.ExternalServices.DBService.RetryDelay = 1 * time.Second
@@ -104,8 +106,11 @@ func overrideFromEnv(cfg *Config) {
 		cfg.Logging.Format = format
 	}
 
-	if dbURL := os.Getenv("DB_SERVICE_URL"); dbURL != "" {
-		cfg.ExternalServices.DBService.URL = dbURL
+	if httpUrl := os.Getenv("DB_SERVICE_HTTP_URL"); httpUrl != "" {
+		cfg.ExternalServices.DBService.HTTPUrl = httpUrl
+	}
+	if grpcAddr := os.Getenv("DB_SERVICE_GRPC_ADDRESS"); grpcAddr != "" {
+		cfg.ExternalServices.DBService.GRPCAddress = grpcAddr
 	}
 	if timeout := parseDurationFromEnv("DB_SERVICE_TIMEOUT"); timeout > 0 {
 		cfg.ExternalServices.DBService.Timeout = timeout

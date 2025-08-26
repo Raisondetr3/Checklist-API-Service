@@ -38,20 +38,20 @@ func NewTaskClient(dbConfig config.DBServiceConfig) (TaskClient, error) {
 	}
 
 	conn, err := grpc.NewClient(
-		dbConfig.URL,
+		dbConfig.GRPCAddress,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithKeepaliveParams(kacp),
 		grpc.WithUnaryInterceptor(loggingUnaryInterceptor),
 		grpc.WithUnaryInterceptor(retryUnaryInterceptor(dbConfig.MaxRetries, dbConfig.RetryDelay)),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to gRPC server at %s: %w", dbConfig.URL, err)
+		return nil, fmt.Errorf("failed to connect to gRPC server at %s: %w", dbConfig.GRPCAddress, err)
 	}
 
 	client := pb.NewTaskServiceClient(conn)
 
 	slog.Info("Connected to gRPC server",
-		slog.String("address", dbConfig.URL),
+		slog.String("address", dbConfig.GRPCAddress),
 		slog.Duration("timeout", dbConfig.Timeout),
 		slog.Int("max_retries", dbConfig.MaxRetries),
 	)

@@ -34,7 +34,8 @@ func main() {
 	slog.Info("Starting API service",
 		slog.String("port", cfg.Server.Port),
 		slog.String("log_level", cfg.Logging.Level),
-		slog.String("db_service_url", cfg.ExternalServices.DBService.URL),
+		slog.String("db_service_http_url", cfg.ExternalServices.DBService.HTTPUrl),
+		slog.String("db_service_grpc_address", cfg.ExternalServices.DBService.GRPCAddress),
 	)
 
 	grpcClient, err := client.NewTaskClient(cfg.ExternalServices.DBService)
@@ -50,7 +51,6 @@ func main() {
 
 	taskService := service.NewTaskService(grpcClient)
 	healthService := service.NewHealthService(cfg)
-
 
 	handlers := httpTransport.NewHTTPHandlers(cfg, taskService, healthService)
 	server := httpTransport.NewHTTPServer(cfg, handlers)

@@ -31,7 +31,7 @@ func NewHealthService(cfg *config.Config) HealthService {
 }
 
 func (s *healthService) CheckHealth(ctx context.Context) (*model.Health, error) {
-	dbURL := fmt.Sprintf("%s/health", s.config.ExternalServices.DBService.URL)
+	dbURL := fmt.Sprintf("%s/health", s.config.ExternalServices.DBService.HTTPUrl)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", dbURL, nil)
 	if err != nil {

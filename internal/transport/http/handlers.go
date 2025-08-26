@@ -28,7 +28,6 @@ func NewHTTPHandlers(cfg *config.Config, taskService service.TaskService, health
 }
 
 func (h *HTTPHandlers) SetupRoutes(router *mux.Router) {
-
 	router.HandleFunc("/health", h.healthHandlers.HandleHealthCheck).Methods("GET")
 	router.HandleFunc("/", h.RootHandler).Methods("GET")
 
@@ -95,8 +94,20 @@ func WriteErrorResponse(w http.ResponseWriter, message string, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	
-	errJSON := errDTO.ToString()
-	if _, writeErr := w.Write([]byte(errJSON)); writeErr != nil {
+	jsonBytes, err := json.MarshalIndent(errDTO, "", "  ")
+	if err != nil {
+		slog.Error("Failed to marshal error response", slog.String("error", err.Error()))
+		if _, writeErr := w.Write([]byte(errDTO.ToString())); writeErr != nil {
+			slog.Error("Failed to write fallback error response to client",
+				slog.String("error", writeErr.Error()),
+				slog.String("message", message),
+				slog.Int("status_code", statusCode),
+			)
+		}
+		return
+	}
+
+	if _, writeErr := w.Write(jsonBytes); writeErr != nil {
 		slog.Error("Failed to write error response to client",
 			slog.String("error", writeErr.Error()),
 			slog.String("message", message),

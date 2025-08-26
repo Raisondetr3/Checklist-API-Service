@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/Raisondetr3/checklist-api-service/internal/model"
@@ -31,25 +30,14 @@ func (h *HealthHandlers) HandleHealthCheck(w http.ResponseWriter, r *http.Reques
 
 	statusCode := h.getHTTPStatusCode(health.Status)
 	
-	h.writeJSONResponse(w, statusCode, healthStatus)
+	WriteJSONResponse(w, statusCode, healthStatus)
 }
 
 func (h *HealthHandlers) getHTTPStatusCode(status model.HealthStatus) int {
 	switch status {
 	case model.HealthStatusHealthy:
 		return http.StatusOK
-	case model.HealthStatusUnhealthy:
-		return http.StatusServiceUnavailable
 	default:
 		return http.StatusServiceUnavailable
-	}
-}
-
-func (h *HealthHandlers) writeJSONResponse(w http.ResponseWriter, statusCode int, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-
-	if data != nil {
-		json.NewEncoder(w).Encode(data)
 	}
 }
