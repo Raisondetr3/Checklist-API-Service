@@ -33,8 +33,8 @@ func (h *TaskHandlers) HandleCreateTask(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if validationErrs := validator.ValidateCreateTaskRequest(req); validationErrs.HasErrors() {
-		WriteErrorResponse(w, validationErrs.Error(), http.StatusBadRequest)
+	if err := validator.ValidateCreateTaskRequest(req); err != nil {
+		WriteErrorResponse(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -127,8 +127,8 @@ func (h *TaskHandlers) HandleUpdateTask(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if validationErrs := validator.ValidateUpdateTaskRequest(req); validationErrs.HasErrors() {
-		WriteErrorResponse(w, validationErrs.Error(), http.StatusBadRequest)
+	if err := validator.ValidateUpdateTaskRequest(req); err != nil {
+		WriteErrorResponse(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
